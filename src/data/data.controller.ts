@@ -55,9 +55,9 @@ export class DataController {
 	async update(
 		@Param('_id') _id: Types.ObjectId,
 		@Query('table') table: TypeTable,
-		@Body() data: any
+		@Body() data: { data: object; parentField: string }
 	) {
-		await this.dataService.update({ _id, table, data })
+		await this.dataService.update({ _id, table, ...data })
 	}
 
 	@Delete('delete/:_id')

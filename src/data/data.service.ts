@@ -15,7 +15,7 @@ export class DataService {
 
 		await this.db
 			.collection(table)
-			.insertOne({ parentField: parentField, ...data })
+			.insertOne({ parentField: parentField, data })
 	}
 
 	async search(dto: SearchDto) {
@@ -39,14 +39,14 @@ export class DataService {
 	}
 
 	async update(dto: UpdateDataDto) {
-		const { _id, data, table } = dto
+		const { _id, data, table, parentField } = dto
 
 		if (!table || !_id)
 			throw new BadRequestException('Invalid query params')
 
 		await this.db
 			.collection(table)
-			.replaceOne({ _id: new Types.ObjectId(_id) }, data)
+			.replaceOne({ _id: new Types.ObjectId(_id) }, { parentField, data })
 	}
 
 	async delete(_id: Types.ObjectId, table: TypeTable) {

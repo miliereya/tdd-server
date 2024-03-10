@@ -28,7 +28,7 @@ export class DataService {
 
 		return await this.db
 			.collection(table)
-			.find({ [parentField]: regexp })
+			.find({ [`data.${parentField}`]: regexp })
 			.toArray()
 	}
 

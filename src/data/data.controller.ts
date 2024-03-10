@@ -28,8 +28,10 @@ export class DataController {
 
 	@Post('create-many')
 	async createMany(@Body() dto: CreateManyDto) {
-		dto.data.forEach(
-			async (record) => await this.dataService.create(record)
+		dto.data.forEach(async (record) =>
+			record._id
+				? await this.dataService.update({ ...record, _id: record._id })
+				: await this.dataService.create(record)
 		)
 	}
 

@@ -4,7 +4,6 @@ import { UpdateDataDto } from './dto/update-data.dto'
 import { MONGODB_PROVIDER } from 'src/constants'
 import { Db } from 'mongodb'
 import { SearchDto } from './dto'
-import { TypeTable } from './types'
 import { Types } from 'mongoose'
 
 @Injectable()
@@ -32,7 +31,7 @@ export class DataService {
 			.toArray()
 	}
 
-	async findAll(table: TypeTable) {
+	async findAll(table: string) {
 		if (!table) throw new BadRequestException('Invalid query params')
 
 		return await this.db.collection(table).find().toArray()
@@ -49,7 +48,7 @@ export class DataService {
 			.replaceOne({ _id: new Types.ObjectId(_id) }, { parentField, data })
 	}
 
-	async delete(_id: Types.ObjectId, table: TypeTable) {
+	async delete(_id: Types.ObjectId, table: string) {
 		if (!table || !_id)
 			throw new BadRequestException('Invalid query params')
 

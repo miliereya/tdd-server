@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { DataService } from './data.service'
+import { AmazonS3Service } from './amazon-s3.service'
 
-describe('DataService', () => {
-	let service: DataService
+describe('AmazonS3Service', () => {
+	let service: AmazonS3Service
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [DataService],
+			providers: [AmazonS3Service],
 		}).compile()
 
-		service = module.get<DataService>(DataService)
+		service = module.get<AmazonS3Service>(AmazonS3Service)
 	})
 
 	it('should be defined', () => {

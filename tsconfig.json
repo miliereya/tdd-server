@@ -16,6 +16,26 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@app/common": [
+        "libs/common/src"
+      ],
+      "@app/common/*": [
+        "libs/common/src/*"
+      ],
+      "@app/api": [
+        "libs/api/src"
+      ],
+      "@app/api/*": [
+        "libs/api/src/*"
+      ],
+      "@app/amazon-s3": [
+        "libs/amazon-s3/src"
+      ],
+      "@app/amazon-s3/*": [
+        "libs/amazon-s3/src/*"
+      ]
+    }
   }
 }

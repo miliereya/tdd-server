@@ -10,7 +10,6 @@ import {
 	HttpCode,
 } from '@nestjs/common'
 import { DataService } from './data.service'
-import { TypeTable } from './types'
 import { Types } from 'mongoose'
 import { CreateManyDto } from './dto'
 
@@ -20,7 +19,7 @@ export class DataController {
 
 	@Post('create')
 	async create(
-		@Query('table') table: TypeTable,
+		@Query('table') table: string,
 		@Body() dto: { data: any; parentField: string }
 	) {
 		await this.dataService.create({ table, ...dto })
@@ -38,7 +37,7 @@ export class DataController {
 	@Get('search')
 	async search(
 		@Query('parentField') parentField: string,
-		@Query('table') table: TypeTable,
+		@Query('table') table: string,
 		@Query('value') value: string
 	) {
 		return await this.dataService.search({
@@ -49,14 +48,14 @@ export class DataController {
 	}
 
 	@Get('find-all')
-	async findAll(@Query('table') table: TypeTable) {
+	async findAll(@Query('table') table: string) {
 		return await this.dataService.findAll(table)
 	}
 
 	@Put('update/:_id')
 	async update(
 		@Param('_id') _id: Types.ObjectId,
-		@Query('table') table: TypeTable,
+		@Query('table') table: string,
 		@Body() data: { data: object; parentField: string }
 	) {
 		await this.dataService.update({ _id, table, ...data })
@@ -66,7 +65,7 @@ export class DataController {
 	@HttpCode(200)
 	async delete(
 		@Param('_id') _id: Types.ObjectId,
-		@Query('table') table: TypeTable
+		@Query('table') table: string
 	) {
 		await this.dataService.delete(_id, table)
 	}

@@ -1,6 +1,7 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { v4 as uuid } from 'uuid'
 
 @Injectable()
 export class AmazonS3Service {
@@ -8,15 +9,20 @@ export class AmazonS3Service {
 		region: this.configService.getOrThrow('AWS_S3_REGION'),
 	})
 
+	private readonly AWS_URL = this.configService.getOrThrow('AWS_URL')
+
 	constructor(private readonly configService: ConfigService) {}
 
-	async upload(fileName: string, file: Buffer) {
-		return await this.s3Client.send(
+	async upload(file: Buffer) {
+		const key = uuid()
+		await this.s3Client.send(
 			new PutObjectCommand({
-				Bucket: 'highlighter-server-bucket',
-				Key: fileName,
+				Bucket: 'tdd-templates',
+				Key: key,
 				Body: file,
 			})
 		)
+
+		return this.AWS_URL + key
 	}
 }

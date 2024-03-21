@@ -16,6 +16,8 @@
     "@app/api/(.*)": "<rootDir>/../libs/api/src/$1",
     "@app/api": "<rootDir>/../libs/api/src",
     "@app/amazon-s3/(.*)": "<rootDir>/../libs/amazon-s3/src/$1",
-    "@app/amazon-s3": "<rootDir>/../libs/amazon-s3/src"
+    "@app/amazon-s3": "<rootDir>/../libs/amazon-s3/src",
+    "@app/email/(.*)": "<rootDir>/../libs/email/src/$1",
+    "@app/email": "<rootDir>/../libs/email/src"
   }
 }

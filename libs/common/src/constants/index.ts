@@ -1,1 +1,1 @@
-export * from './collection.constants'
+export * from './databases.constants'

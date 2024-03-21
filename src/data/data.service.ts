@@ -1,20 +1,27 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { CreateDataDto } from './dto/create-data.dto'
 import { UpdateDataDto } from './dto/update-data.dto'
-import { MONGODB_PROVIDER } from 'src/constants'
-import { Db } from 'mongodb'
 import { SearchDto } from './dto'
 import { Types } from 'mongoose'
+import { MongoRepository } from '@app/common'
 
 @Injectable()
 export class DataService {
-	constructor(@Inject(MONGODB_PROVIDER) private readonly db: Db) {}
+	mongoRepository: MongoRepository
+
+	constructor() {
+		this.mongoRepository = new MongoRepository()
+	}
+
 	async create(dto: CreateDataDto) {
 		const { data, parentField, table } = dto
 
-		await this.db
-			.collection(table)
-			.insertOne({ parentField: parentField, data })
+		const entity = {
+			data,
+			parentField,
+		}
+
+		await this.mongoRepository.create(entity, table, 'user123')
 	}
 
 	async search(dto: SearchDto) {
@@ -25,16 +32,15 @@ export class DataService {
 
 		const regexp = new RegExp(dto.value, 'i')
 
-		return await this.db
-			.collection(table)
-			.find({ [`data.${parentField}`]: regexp })
-			.toArray()
+		const filter = { [`data.${parentField}`]: regexp }
+
+		return await this.mongoRepository.findMany(filter, table, 'user123')
 	}
 
 	async findAll(table: string) {
 		if (!table) throw new BadRequestException('Invalid query params')
 
-		return await this.db.collection(table).find().toArray()
+		return await this.mongoRepository.findMany({}, table, 'user123')
 	}
 
 	async update(dto: UpdateDataDto) {
@@ -43,17 +49,22 @@ export class DataService {
 		if (!table || !_id)
 			throw new BadRequestException('Invalid query params')
 
-		await this.db
-			.collection(table)
-			.replaceOne({ _id: new Types.ObjectId(_id) }, { parentField, data })
+		await this.mongoRepository.replace(
+			{ _id: new Types.ObjectId(_id) },
+			{ parentField, data },
+			table,
+			'user123'
+		)
 	}
 
 	async delete(_id: Types.ObjectId, table: string) {
 		if (!table || !_id)
 			throw new BadRequestException('Invalid query params')
 
-		await this.db
-			.collection(table)
-			.deleteOne({ _id: new Types.ObjectId(_id) })
+		await this.mongoRepository.delete(
+			{ _id: new Types.ObjectId(_id) },
+			table,
+			'user123'
+		)
 	}
 }

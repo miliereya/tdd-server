@@ -1,4 +1,4 @@
-export const enum MONGO_COLLECTIONS {
+export const enum DB_COLLECTIONS {
 	TEMPLATES = 'templates',
 	USERS = 'users',
 }

@@ -35,6 +35,12 @@
       ],
       "@app/amazon-s3/*": [
         "libs/amazon-s3/src/*"
+      ],
+      "@app/email": [
+        "libs/email/src"
+      ],
+      "@app/email/*": [
+        "libs/email/src/*"
       ]
     }
   }

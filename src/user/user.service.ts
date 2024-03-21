@@ -3,23 +3,22 @@ import {
 	Injectable,
 	NotFoundException,
 } from '@nestjs/common'
-import { ConfirmEmailDto, LoginDto, RegisterDto } from './dto'
+import { ConfirmEmailDto, LoginDto, RegisterDto, SendCodeDto } from './dto'
 import { UserRepository } from './repositories/user.repository'
 import { VerificationRepository } from './repositories/verification.repository'
 import { Response } from 'express'
-import { EmailService, getConfirmAccountTemplate } from '@app/email'
-import {
-	generateConfirmationToken,
-	generateSixDigitsCode,
-	parseToId,
-} from '@app/common'
+import { EmailService } from '@app/email'
+import { generateConfirmationToken, generateSixDigitsCode } from '@app/common'
+import { JwtService } from '@nestjs/jwt'
+import { TokenPayload } from './types'
 
 @Injectable()
 export class UserService {
 	constructor(
 		private readonly userRepository: UserRepository,
 		private readonly verificationRepository: VerificationRepository,
-		private readonly emailService: EmailService
+		private readonly emailService: EmailService,
+		private readonly jwtService: JwtService
 	) {}
 
 	async register(dto: RegisterDto) {
@@ -39,33 +38,25 @@ export class UserService {
 			confirmationToken,
 		})
 
-		await this.emailService.send({
-			to: dto.email,
-			subject: 'Email confirmation',
-			from: 'tdd.parser.excel@gmail.com',
-			html: getConfirmAccountTemplate({
-				email: dto.email,
-				link: confirmationLink,
-			}),
-		})
+		await this.emailService.sendConfirmationEmail(
+			dto.email,
+			confirmationLink
+		)
 
 		return user
-		// this.sendVerificationLink(user.email)
 	}
 
-	// private async generateToken(
-	// 	tokenPayload: TokenPayload,
-	// 	response: Response
-	// ) {
-	// 	const expires = new Date()
-	// 	expires.setSeconds(
-	// 		expires.getSeconds() + this.configService.get('JWT_EXPIRATION')
-	// 	)
+	private async generateToken(
+		tokenPayload: TokenPayload,
+		response: Response
+	) {
+		const token = await this.jwtService.signAsync(tokenPayload, {
+			secret: process.env.JWT_SECRET,
+			expiresIn: '30d',
+		})
 
-	// 	const token = this.jwtService.sign(tokenPayload)
-
-	// 	response.header('Bearer', token)
-	// }
+		response.header('token', token)
+	}
 
 	private async checkEmailExists(email: string) {
 		try {
@@ -78,7 +69,7 @@ export class UserService {
 		return false
 	}
 
-	async confirmEmail(dto: ConfirmEmailDto) {
+	async confirmEmail(dto: ConfirmEmailDto, response: Response) {
 		const { token, email } = dto
 		try {
 			await this.verificationRepository.findOne({
@@ -89,10 +80,12 @@ export class UserService {
 			throw new BadRequestException()
 		}
 
-		this.userRepository.findOneAndUpdate(
+		await this.userRepository.findOneAndUpdate(
 			{ email },
 			{ $set: { isConfirmed: true } }
 		)
+
+		await this.generateToken({ email }, response)
 	}
 
 	async login(dto: LoginDto) {
@@ -104,27 +97,44 @@ export class UserService {
 			throw new BadRequestException('Confirm your email address')
 
 		const code = generateSixDigitsCode()
-		const expireDate = new Date(Date.now() + 5 * 60 * 1000)
+		const expireDate = new Date().getTime() + 1000 * 60 * 5
 
 		await this.verificationRepository.findOneAndUpdate(
 			{
-				user: parseToId(user._id),
+				email: user.email,
 			},
 			{ $set: { code, expireDate } }
 		)
 
-		// await this.emailService.send({
-		// 	to: dto.email,
-		// 	subject: 'Login Code',
-		// 	from: 'tdd.parser.excel@gmail.com',
-		// 	html: getConfirmAccountTemplate(code),
-		// })
+		await this.emailService.sendCodeEmail(dto.email, String(code))
 	}
 
-	// async refresh(userId: Types.ObjectId, response: Response) {
-	// 	const user = await this.userService.getPrivateUser(userId)
-	// 	await this.generateToken(userId, response)
+	async sendCode(dto: SendCodeDto, response: Response) {
+		const { code, email } = dto
 
-	// 	return user
-	// }
+		try {
+			const verification = await this.verificationRepository.findOne({
+				email,
+				code,
+			})
+
+			const isCodeExpired = verification.expireDate < new Date().getTime()
+
+			await this.verificationRepository.findOneAndUpdate(
+				{ email },
+				{ $set: { expireDate: null, code: null } }
+			)
+
+			if (isCodeExpired) {
+				throw 'Expired'
+			}
+
+			return await this.generateToken({ email }, response)
+		} catch (e) {
+			if (e === 'Expired')
+				throw new BadRequestException('Code is already expired')
+
+			throw new BadRequestException('Invalid code')
+		}
+	}
 }

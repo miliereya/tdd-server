@@ -9,6 +9,7 @@ import {
 } from '@app/common/schemas/verification.schema'
 import { VerificationRepository } from './repositories/verification.repository'
 import { EmailModule } from '@app/email'
+import { JwtModule } from '@nestjs/jwt'
 
 @Module({
 	imports: [
@@ -17,8 +18,13 @@ import { EmailModule } from '@app/email'
 			{ name: User.name, schema: UserSchema },
 			{ name: Verification.name, schema: VerificationSchema },
 		]),
-		HealthModule,
+		JwtModule.register({
+			global: true,
+			secret: process.env.JWT_SECRET,
+			signOptions: { expiresIn: '60s' },
+		}),
 		EmailModule,
+		HealthModule,
 	],
 	controllers: [UserController],
 	providers: [UserService, UserRepository, VerificationRepository],

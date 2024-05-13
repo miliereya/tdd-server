@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString, MaxLength } from 'class-validator'
+import { Cell, Group } from '@app/common'
+import { IsArray, IsNotEmpty, IsString, MaxLength } from 'class-validator'
 
 export class CreateTemplateDto {
 	@IsNotEmpty()
@@ -6,7 +7,12 @@ export class CreateTemplateDto {
 	@MaxLength(255)
 	title: string
 
-	// @IsString()
-	// @MaxLength(255)
-	// rules: string
+	@IsArray()
+	cells: Cell[]
+
+	@IsArray()
+	groups: Group[]
+
+	@IsString()
+	fileType: string
 }

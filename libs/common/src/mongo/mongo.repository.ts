@@ -5,7 +5,7 @@ export class MongoRepository {
 	client: MongoClient
 	db: Db
 
-	constructor(defaultDb: string = 'test') {
+	constructor(defaultDb = 'test') {
 		this.connect(defaultDb)
 	}
 
@@ -21,7 +21,7 @@ export class MongoRepository {
 	}
 
 	setDb(db: string) {
-		this.db = this.client.db(db)
+		this.db = this.client.db(db.replace('.', ''))
 	}
 
 	// CRUD

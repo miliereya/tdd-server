@@ -24,8 +24,12 @@ export class UserService {
 	async register(dto: RegisterDto) {
 		const isEmailAvailable = await this.checkEmailExists(dto.email)
 
-		if (!isEmailAvailable) {
-			throw new BadRequestException('Email is already used.')
+		if (isEmailAvailable !== 'free') {
+			throw new BadRequestException(
+				isEmailAvailable === 'busy'
+					? 'Email is already used.'
+					: 'Email is not confirmed.'
+			)
 		}
 
 		const user = await this.userRepository.create(dto)
@@ -60,13 +64,14 @@ export class UserService {
 
 	private async checkEmailExists(email: string) {
 		try {
-			await this.userRepository.findOne({
+			const user = await this.userRepository.findOne({
 				email,
 			})
+
+			return user.isConfirmed ? 'busy' : 'not confirmed'
 		} catch (err) {
-			return true
+			return 'free'
 		}
-		return false
 	}
 
 	async confirmEmail(dto: ConfirmEmailDto, response: Response) {
@@ -86,6 +91,7 @@ export class UserService {
 		)
 
 		await this.generateToken({ email }, response)
+		return this.getUser(email)
 	}
 
 	async login(dto: LoginDto) {
@@ -109,9 +115,12 @@ export class UserService {
 		await this.emailService.sendCodeEmail(dto.email, String(code))
 	}
 
+	async getUser(email: string) {
+		return await this.userRepository.findOne({ email })
+	}
+
 	async sendCode(dto: SendCodeDto, response: Response) {
 		const { code, email } = dto
-
 		try {
 			const verification = await this.verificationRepository.findOne({
 				email,
@@ -129,7 +138,8 @@ export class UserService {
 				throw 'Expired'
 			}
 
-			return await this.generateToken({ email }, response)
+			await this.generateToken({ email }, response)
+			return this.getUser(email)
 		} catch (e) {
 			if (e === 'Expired')
 				throw new BadRequestException('Code is already expired')

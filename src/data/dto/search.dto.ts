@@ -1,12 +1,15 @@
 import { IsString } from 'class-validator'
 import { TableBase } from './table-base.dto'
 
-export class SearchDto extends TableBase {
+export class SearchDto {
 	@IsString()
-	parentField: string
+	title: string
 
 	@IsString()
 	value: string
+
+	@IsString()
+	parentIndex: string
 }
 
 export class FullSearchDto extends TableBase {

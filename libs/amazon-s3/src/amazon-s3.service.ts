@@ -13,8 +13,8 @@ export class AmazonS3Service {
 
 	constructor(private readonly configService: ConfigService) {}
 
-	async upload(file: Buffer) {
-		const key = uuid()
+	async upload(file: Buffer, type: string) {
+		const key = `${uuid()}.${type}`
 		await this.s3Client.send(
 			new PutObjectCommand({
 				Bucket: 'tdd-templates',

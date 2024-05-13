@@ -1,16 +1,23 @@
-import { IsArray, IsObject, IsString } from 'class-validator'
-import { TableBase } from './table-base.dto'
+import { IsArray, IsString } from 'class-validator'
 import { Types } from 'mongoose'
 
-export class CreateDataDto extends TableBase {
+export class CreateDataDto {
 	@IsString()
-	parentField: string
+	parentIndex: string
 
-	@IsObject()
-	data: object
+	@IsArray()
+	fields: {
+		index: string
+		value: string
+	}[]
+
+	updateId?: Types.ObjectId
+
+	@IsString()
+	title: string
 }
 
 export class CreateManyDto {
 	@IsArray()
-	data: ({ _id?: Types.ObjectId } & CreateDataDto)[]
+	data: CreateDataDto[]
 }

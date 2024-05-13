@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { AbstractDocument, DB_COLLECTIONS } from '@app/common'
-import { Types } from 'mongoose'
+import { AbstractDocument } from '@app/common'
 
 @Schema({ versionKey: false })
 export class Verification extends AbstractDocument {

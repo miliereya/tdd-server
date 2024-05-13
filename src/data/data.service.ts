@@ -13,28 +13,26 @@ export class DataService {
 		this.mongoRepository = new MongoRepository()
 	}
 
-	async create(dto: CreateDataDto) {
-		const { data, parentField, table } = dto
+	async create(dto: CreateDataDto, email: string) {
+		const { fields, parentIndex, title } = dto
 
-		const entity = {
-			data,
-			parentField,
-		}
+		const parentValue = fields.find((f) => f.index === parentIndex).value
 
-		await this.mongoRepository.create(entity, table, 'user123')
+		if (!parentValue) return
+
+		await this.mongoRepository.create({ parentValue, fields }, title, email)
 	}
 
-	async search(dto: SearchDto) {
-		const { parentField, table, value } = dto
+	async search(dto: SearchDto, email: string) {
+		const { title, value, parentIndex } = dto
 
-		if (!parentField || !table || !value)
+		if (!title || !value || !parentIndex)
 			throw new BadRequestException('Invalid query params')
 
 		const regexp = new RegExp(dto.value, 'i')
 
-		const filter = { [`data.${parentField}`]: regexp }
-
-		return await this.mongoRepository.findMany(filter, table, 'user123')
+		const filter = { parentValue: regexp }
+		return await this.mongoRepository.findMany(filter, title, email)
 	}
 
 	async findAll(table: string) {
@@ -43,17 +41,20 @@ export class DataService {
 		return await this.mongoRepository.findMany({}, table, 'user123')
 	}
 
-	async update(dto: UpdateDataDto) {
-		const { _id, data, table, parentField } = dto
+	async update(dto: UpdateDataDto, email: string) {
+		const { _id, title, fields, parentIndex } = dto
 
-		if (!table || !_id)
+		if (!title || !_id || !parentIndex)
 			throw new BadRequestException('Invalid query params')
 
+		const parentValue = fields.find((f) => f.index === parentIndex).value
+
+		if (!parentValue) return
 		await this.mongoRepository.replace(
 			{ _id: new Types.ObjectId(_id) },
-			{ parentField, data },
-			table,
-			'user123'
+			{ parentValue, fields },
+			title,
+			email
 		)
 	}
 
